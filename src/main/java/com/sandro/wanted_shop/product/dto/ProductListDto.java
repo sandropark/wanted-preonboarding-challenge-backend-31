@@ -12,6 +12,7 @@ public record ProductListDto(
         String name,
         BigDecimal basePrice,
         double rating,
+        int reviewCount,
         LocalDateTime createdAt
 ) {
     public static ProductListDto from(Product product) {
@@ -19,11 +20,16 @@ public record ProductListDto(
                 product.getId(),
                 product.getName(),
                 product.getPrice().getBasePrice(),
-                product.getReviews().stream()
-                        .mapToInt(Review::getRating)
-                        .average()
-                        .orElse(0),
+                getAverageRating(product),
+                product.getReviews().size(),
                 product.getCreatedAt()
         );
+    }
+
+    private static double getAverageRating(Product product) {
+        return product.getReviews().stream()
+                .mapToInt(Review::getRating)
+                .average()
+                .orElse(0);
     }
 }

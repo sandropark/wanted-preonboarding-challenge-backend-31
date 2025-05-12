@@ -9,6 +9,7 @@ import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.sandro.wanted_shop.product.dto.ProductFilterDto;
 import com.sandro.wanted_shop.product.entity.Product;
+import com.sandro.wanted_shop.product.entity.enums.ProductStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -59,6 +60,51 @@ public class QueryDslProductRepositoryImpl implements QueryDslProductRepository 
         applyFilter(countQuery, filter);
 
         return PageableExecutionUtils.getPage(content, pageable, countQuery::fetchOne);
+    }
+
+    @Override
+    public List<Product> findAllPopular() {
+        return findAllPopular(10);
+    }
+
+    @Override
+    public List<Product> findAllPopular(int topN) {
+        // 1. 먼저 인기 상품 ID들을 조회
+        List<Long> popularProductIds = queryFactory
+                .select(product.id)
+                .from(product)
+                .leftJoin(product.reviews, review)
+                .where(product.status.eq(ProductStatus.ACTIVE))
+                .groupBy(product.id)
+                .orderBy(review.rating.avg().desc(), review.count().desc())
+                .limit(topN)
+                .fetch();
+
+        // 2. 조회된 ID들로 상세 정보를 조회 (순서 유지)
+        return queryFactory
+                .selectFrom(product)
+                .leftJoin(product.detail).fetchJoin()
+                .leftJoin(product.price).fetchJoin()
+                .leftJoin(product.reviews, review).fetchJoin()
+                .where(product.id.in(popularProductIds))
+                .fetch();
+    }
+
+    @Override
+    public List<Product> findAllNew() {
+        return findAllNew(10);
+    }
+
+    @Override
+    public List<Product> findAllNew(int topN) {
+        return queryFactory
+                .selectFrom(product)
+                .leftJoin(product.price).fetchJoin()
+                .leftJoin(product.detail).fetchJoin()
+                .where(product.status.eq(ProductStatus.ACTIVE))
+                .orderBy(product.createdAt.desc())
+                .limit(topN)
+                .fetch();
     }
 
     private void applyFilter(JPAQuery<?> query, ProductFilterDto filter) {

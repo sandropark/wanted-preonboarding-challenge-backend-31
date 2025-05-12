@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 
-public interface CategoryRepository extends JpaRepository<Category, Long> {
+public interface CategoryRepository extends JpaRepository<Category, Long>, QueryDslCategoryRepository {
     @EntityGraph(attributePaths = {"children", "children.children"})
     @Query("SELECT DISTINCT c FROM Category c WHERE c.level = 1")
     List<Category> findAllWithChildren();

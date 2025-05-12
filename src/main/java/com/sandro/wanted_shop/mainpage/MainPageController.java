@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class MainPageController {
     private final MainPageService mainPageService;
 
-    // TODO: 인기상품 추가하기
     /*
      - 인기 상품 (판매량, 조회수 기준)
      - 신규 상품 (등록일 기준)

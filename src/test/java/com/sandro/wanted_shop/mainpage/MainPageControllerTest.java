@@ -5,7 +5,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.ResultActions;
 
-import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -21,11 +20,12 @@ class MainPageControllerTest extends IntegrationTestContext {
         resultActions
                 .andExpectAll(
                         status().isOk(),
-                        jsonPath("$.product", nullValue()),
+                        jsonPath("$.popularProducts.size()").value(10),
+                        jsonPath("$.popularProducts[0].rating").value(5),
+                        jsonPath("$.popularProducts[9].rating").value(4),
                         jsonPath("$.newProduct.size()").value(10),
-                        jsonPath("$.categories").exists()
+                        jsonPath("$.categories.size()").value(2)
                 )
                 .andDo(print());
     }
-
 }
